@@ -1,0 +1,222 @@
+<html>
+ <body>
+	id <input type="text" id="id" ><p>
+	fn <input type="text" id="fn" value=""><p>
+	ln <input type="text" id="ln" value=""><p>
+	age <input type="text" id="age" value=""><p>
+
+	<input type="button" id = "AddStart" value="AddStart" onclick="AddStart()">	
+	<input type="button" id = "AddMid" value="AddMid" onclick="AddMid()">	
+	<input type="button" id = "AddEnd" value="AddEnd" onclick="AddEnd()">	
+	<br> <input type="button" id = "DelStart" value="DelStart" onclick="DelStart()">	
+	<input type="button" id = "DelMid" value="DelMid" onclick="DelMid()">	
+	<input type="button" id = "DelEnd" value="DelEnd" onclick="DelEnd()">	
+	<input type="button" id = "Clear" value="Clear" onclick="Clear()">
+
+	<br> <input type="button" id = "Save" value="Save" onclick="Save()">	
+	<input type="button" id = "Load" value="Load" onclick="Load()">	
+	<input type="button" id = "SaveXML" value="SaveXML" onclick="SaveXML()">	
+	<input type="button" id = "LoadXML" value="LoadXML" onclick="LoadXML()">
+	
+<div id="tableDiv">
+	<table id = "persons" border = "1">
+		<thead> 
+			<tr>
+				<th>Id</th>
+				<th>First name</th>
+				<th>Last name</th>
+				<th>Age</th>
+			</tr>
+		</thead>
+		<tbody id="tableBody">
+
+		</tbody>
+
+	</table>
+</div>
+ </body>
+</html>
+
+<script>
+	var myTable = document.getElementById('persons').getElementsByTagName('tbody')[0];
+	function Add(pos)
+	{
+		var id = document.getElementById('id').value;
+		var fn = document.getElementById('fn').value;
+		var ln = document.getElementById('ln').value;
+		var age = document.getElementById('age').value;
+
+		var str = "<tr><td>" + id + "</td><td>" + fn + "</td><td>"+ ln + "</td><td>"+ age +"</td></tr>";
+		
+		if(pos == 0)
+		{
+			myTable.innerHTML = str + myTable.innerHTML;
+		}
+		else if(pos == myTable.rows.length)
+			{
+				myTable.innerHTML = myTable.innerHTML + str;
+			}
+			else if(pos == myTable.rows.length / 2)
+				{
+					pos = Math.floor(pos);
+					var s = "";
+					var arr = myTable.innerHTML.split("<tr>");
+					for (var i = 1; i < arr.length; i++) {
+						if(i == pos + 1)
+						{
+							s += str;
+						}
+						s = s+"<tr>"+arr[i];
+					}
+					myTable.innerHTML = s;
+				}
+	}
+	function AddStart()
+	{
+		Add(0);
+	}
+	function AddMid()
+	{
+		Add(myTable.rows.length / 2);
+	}
+	function AddEnd()
+	{
+		Add(myTable.rows.length);
+	}
+	function DelStart()
+	{
+		var s = "";
+		var arr = myTable.innerHTML.split("<tr>");
+		for (var i = 2; i < arr.length; i++) 
+		{
+			s = s+"<tr>"+arr[i];
+		}
+		myTable.innerHTML = s;
+	}
+	function DelMid()
+	{
+		pos = Math.floor(myTable.rows.length / 2);
+		var s = "";
+		var arr = myTable.innerHTML.split("<tr>");
+		for (var i = 1; i < arr.length; i++) 
+		{
+			if(i == pos + 1)
+			{
+				continue;
+			}
+			s = s+"<tr>"+arr[i];
+		}
+		myTable.innerHTML = s;
+	}
+	function DelEnd()
+	{
+		var s = "";
+		var arr = myTable.innerHTML.split("<tr>");
+		for (var i = 1; i < arr.length - 1; i++) 
+		{
+			s = s+"<tr>"+arr[i];
+		}
+		myTable.innerHTML = s;
+	}
+	function Clear()
+	{
+		myTable.innerHTML = "";
+	}
+
+	function Save()
+	{
+		 localStorage.setItem("persons", myTable.innerHTML);
+	}
+
+	function Load()
+	{
+		 myTable.innerHTML = localStorage.getItem("persons");
+	}
+	function SaveXML()
+	{
+		var xmlString = '<persons>';
+		
+		for (var i = 0; i < myTable.rows.length; i++)
+		{
+			xmlString += "<person>";
+			if ( myTable.rows[i].cells[0] )
+			{
+			  xmlString += "<id>"+myTable.rows[i].cells[0].textContent+"</id>";
+			}
+			if ( myTable.rows[i].cells[1] )
+			{
+			  xmlString += "<firstName>"+myTable.rows[i].cells[1].textContent+"</firstName>";
+			}
+			if ( myTable.rows[i].cells[2] )
+			{
+			  xmlString += "<lastName>"+myTable.rows[i].cells[2].textContent+"</lastName>";
+			}
+			if ( myTable.rows[i].cells[3] )
+			{
+			  xmlString += "<age>" + myTable.rows[i].cells[3].textContent+ "</age>";
+			}
+			xmlString += "</person>";
+		}
+		xmlString += "</persons>";
+		localStorage.setItem("personXML", xmlString);      
+		console.log(xmlString); //выводит отладочную информацию в консоль
+	}
+	
+	function LoadXML()
+	{
+		var xmlText = localStorage.getItem("personXML");
+		var xsltText =
+		'<xsl:stylesheet version="1.0" ' + //показывает что этот документ является документом типа “XSLT style sheet” 
+		    'xmlns:xsl="http://www.w3.org/1999/XSL/Transform" ' +
+		    'xmlns="http://www.w3.org/TR/xhtml1/strict"> ' +
+            '<xsl:template match="/"> ' +// используется для построения шаблонов преобразования 
+            '<table  border="1"> ' +
+				'<thead> ' +
+				'<tr>' +
+					'<th>Id</th>' +
+					'<th>First Name </th>' +
+					'<th>Last Name </th>' +
+					'<th>Age</th>' +
+				'</tr>' +
+				'</thead >' +
+				'<tbody id="tableBody"> ' +
+				'<xsl:for-each select="persons/person"> ' + //используется для перебора всех элементов, которые подходят условию выборки
+				  '<tr> ' +
+					'<td> <xsl:value-of select="id"/> </td> ' +
+					'<td> <xsl:value-of select="firstName"/> </td> ' +
+					'<td> <xsl:value-of select="lastName"/> </td> ' +
+					'<td> <xsl:value-of select="age"/> </td> ' +
+				  '</tr> ' +
+					'</xsl:for-each>  ' +
+				'</tbody>' +
+			'</table> ' +
+			'</xsl:template> ' +
+        '</xsl:stylesheet> ';
+        var xmlDoc = new DOMParser().parseFromString(xmlText, "text/xml");
+        var xslDoc = new DOMParser().parseFromString(xsltText, "text/xml");
+
+        if (window.ActiveXObject ) 
+		{
+            var ex = xmlDoc.transformNode(xslDoc);//таблица стилей XSL применяется к XML документу
+            document.getElementById("tableDiv").innerHTML = ex;
+        }
+        // code for Chrome, Firefox, Opera, etc.
+        else if (document.implementation && document.implementation.createDocument) 
+		{
+            var xsltProcessor = new XSLTProcessor();
+            xsltProcessor.importStylesheet(xslDoc);
+            resultDocument = xsltProcessor.transformToFragment(xmlDoc, document);
+            document.getElementById("tableDiv").innerHTML = "";
+            document.getElementById("tableDiv").appendChild(resultDocument);
+        }
+        myTable = document.getElementById('tableBody');		
+	}
+	Storage.prototype.setObj = function(key, obj) 
+	{
+		return this.setItem(key, JSON.stringify(obj))
+	}
+	Storage.prototype.getObj = function(key) 
+	{
+		return JSON.parse(this.getItem(key))
+	}
+</script>
